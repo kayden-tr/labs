@@ -1,0 +1,52 @@
+name: elasticsearch
+
+services:
+  server:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.12
+    environment:
+      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME}
+      - node.name=${ELASTICSEARCH_SINGLE_NODE_NAME}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - http.port=9200
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_HEAP_OPTS}
+      - xpack.monitoring.enabled=false
+      - path.logs=/usr/share/elasticsearch/logs
+      - path.repo=/usr/share/elasticsearch/backups
+      - search.max_buckets=65536
+      - search.max_open_scroll_context=50000
+    volumes:
+      - data:/usr/share/elasticsearch/data
+      - backup:/usr/share/elasticsearch/backups
+    ports:
+      - 9200:9200
+    healthcheck:
+      test: "curl -f http://localhost:9200/ || false"
+      interval: 10s
+      timeout: 5s
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.12
+    environment: 
+      - SERVER_HOST=0.0.0.0
+      - ELASTICSEARCH_HOSTS=http://server:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.monitoring.enabled=false
+      - xpack.management.enabled=false
+    ports:
+      - 5602:5601
+    # depends_on: 
+    #   server:
+    #     condition: service_healthy
+    restart: always
+
+volumes: 
+  data:
+  backup:
+

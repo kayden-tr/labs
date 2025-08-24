@@ -1,0 +1,27 @@
+name: cassandra
+
+services:
+  server:
+    network_mode: host
+    image: docker.atalink.com/devops/bitnami/cassandra:3.11.13
+    environment:
+      - CASSANDRA_CLUSTER_NAME=${CASSANDRA_CLUSTER_NAME}
+      - CASSANDRA_DATACENTER=${CASSANDRA_DATACENTER}
+      - CASSANDRA_AUTHENTICATOR=${CASSANDRA_AUTHENTICATOR}
+      - CASSANDRA_AUTHORIZER=${CASSANDRA_AUTHORIZER}
+      - CASSANDRA_RACK=${CASSANDRA_RACK}
+      - CASSANDRA_ENDPOINT_SNITCH=${CASSANDRA_ENDPOINT_SNITCH}
+      - LOCAL_JMX=${CASSANDRA_LOCAL_JMX}
+      - JVM_EXTRA_OPTS=${CASSANDRA_JAVA_HEAP_OPTS}
+    volumes:
+      - data:/bitnami
+      - ./jmxremote.password:/etc/cassandra/jmxremote.password
+      - ./jmxremote.access:/etc/cassandra/jmxremote.access 
+    healthcheck:
+      test: ["CMD", "cqlsh"]
+      interval: 10s
+      timeout: 5s
+    restart: always
+
+volumes:
+  data:

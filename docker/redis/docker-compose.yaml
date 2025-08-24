@@ -1,0 +1,27 @@
+name: redis
+
+services:
+  server:
+    image: bitnami/redis:5.0.9
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory $REDIS_MAX_MEMORY
+    environment:
+      - REDIS_CLUSTER_NAME=${REDIS_CLUSTER_NAME}
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_TIMEOUT=30
+      - REDIS_AOF_ENABLED=yes
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes: 
+      - data:/bitnami
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+    ports:
+      - 6379:6379
+    sysctls:
+      net.core.somaxconn: 65365
+    restart: always
+
+volumes: 
+  data:
+

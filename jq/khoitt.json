@@ -1,0 +1,62 @@
+{
+    "id" : "26cd0d10-919e-4c12-9ccf-00ff796dbd67",
+    "createdTimestamp" : 1732185839873,
+    "username" : "khoitt",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "Khoi",
+    "lastName" : "Trinh-Thien",
+    "email" : "khoitt@atalink.vn",
+    "credentials" : [ {
+      "id" : "28ec5acf-ffc6-45a9-8b3e-57da493c0ad3",
+      "type" : "password",
+      "createdDate" : 1742555376889,
+      "secretData" : "{\"value\":\"CpxK65djZpp1jkg4E2tKiCkz5Q6+ftRWYyEyXxvG3Mw=\",\"salt\":\"0QYMH6A+ImnE1x5cjEOxDw==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    }, {
+      "id" : "bc88f5e3-49e6-43b1-800d-56f3d8bddbc4",
+      "type" : "password-history",
+      "createdDate" : 1732185839914,
+      "secretData" : "{\"value\":\"/SrWFi5S/72s31Vdqm2TyBbvjG4ZyvEaY5HfuIWV65Y=\",\"salt\":\"/iaHCF5OPPHIEKhgLfzfVQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-master", "admin" ],
+    "clientRoles" : {
+      "uat-kafka-client" : [ "dev" ],
+      "sonarqube" : [ "sonar-administrators" ],
+      "jenkins" : [ "devops" ],
+      "dev-kafka-client" : [ "admin" ],
+      "vault" : [ "admin" ]
+    },
+    "clientConsents" : [ {
+      "clientId" : "dev-kafka-client",
+      "grantedClientScopes" : [ "roles", "email", "dev-kafka-client", "profile" ],
+      "createdDate" : 1745814544245,
+      "lastUpdatedDate" : 1745814544277
+    }, {
+      "clientId" : "sonarqube",
+      "grantedClientScopes" : [ "sonarqube" ],
+      "createdDate" : 1734425253710,
+      "lastUpdatedDate" : 1734425253736
+    }, {
+      "clientId" : "https://sentry.atalink.com/saml/metadata/atalink/",
+      "grantedClientScopes" : [ "https://sentry.atalink.com/saml/metadata/atalink/" ],
+      "createdDate" : 1734425306063,
+      "lastUpdatedDate" : 1734425306076
+    }, {
+      "clientId" : "prod-kafka-client",
+      "grantedClientScopes" : [ "roles", "prod-kafka-client", "email", "profile" ],
+      "createdDate" : 1737535719009,
+      "lastUpdatedDate" : 1737535719031
+    }, {
+      "clientId" : "uat-kafka-client",
+      "grantedClientScopes" : [ "roles", "email", "uat-kafka-client", "profile" ],
+      "createdDate" : 1747881428199,
+      "lastUpdatedDate" : 1747881428233
+    } ],
+    "notBefore" : 0,
+    "groups" : [ "/admin" ]
+  }

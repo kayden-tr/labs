@@ -1,0 +1,5 @@
+Zoo<->kafka
+ZOO_SERVER_USERS=admin,kafka-zoo
+ZOO_SERVER_PASSWORDS=admin-secret,kafka-zoo-secret
+
+Client(consumer,producer)<->kafka

@@ -1,0 +1,9 @@
+ awk '
+  $1 == "Host" {
+    host = $2
+  }
+  $1 == "HostName" && host != "" {
+    print $2, host
+    host = ""
+  }
+' /file/path

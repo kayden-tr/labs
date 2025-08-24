@@ -1,0 +1,33 @@
+jq '.Results[].Vulnerabilities[] | .VulnerabilityID' api-kong-1-root-report/result.json
+jq -r '.Results[].Vulnerabilities[].VulnerabilityID' api-kong-1-root-report/result.json | sort -u
+
+#export CSV
+export CSV_HEADERS="Package, Vulnerability ID, Installed Version, Fixed Version"
+echo $CSV_HEADERS > backupandlog.csv
+jq -r '.Results[].Vulnerabilities[] | [.PkgName, .VulnerabilityID, .Severity, .InstalledVersion, .FixedVersion] | @csv' backupandlog-root-report/result.json | sort -u >> backupandlog.csv
+
+for d in $(ls); do
+    for f in $(ls $d/*.json); do 
+    jq -r '
+    [.Results[].Vulnerabilities[] | {id: .VulnerabilityID, row: [.PkgName, .VulnerabilityID, .Severity, .InstalledVersion, .FixedVersion]}]
+    | unique_by(.id)
+    | .[].row
+    | @csv
+    ' $d/$f >> ~/labs/test-vul/$d.csv
+    done
+done
+
+
+for d in */; do
+    dirname="${d%/}"
+    for f in "$dirname"/*.json; do
+        [ -e "$f" ] || continue
+        jq -r '
+          [.Results[].Vulnerabilities[]? | 
+            {id: .VulnerabilityID, row: [.PkgName, .VulnerabilityID, .Severity, .InstalledVersion, .FixedVersion]}]
+          | unique_by(.id)
+          | .[].row
+          | @csv
+        ' "$f" >> ~/labs/test-vul/"$dirname".csv
+    done
+done

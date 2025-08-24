@@ -1,0 +1,7 @@
+#! /bin/bash
+read -p "Enter the date YYYYMMDDHHMM: " input_date
+echo "$input_date"
+touch -t $input_date $0
+# touch -d "$(date -R -r report.csv) - 2 months 2 days" report.csv
+
+ls -l $0 
