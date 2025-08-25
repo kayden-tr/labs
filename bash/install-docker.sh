@@ -12,3 +12,8 @@ sudo chmod +x /usr/local/bin/docker-compose
 echo "---- Check Docker and Docker Compose versions ----"
 docker -v
 docker-compose -v
+
+echo "---- Add '$USER' to group docker ----"
+sudo usermod -aG docker $USER
+sudo systemctl daemon-reload
+sudo systemctl restart docker
