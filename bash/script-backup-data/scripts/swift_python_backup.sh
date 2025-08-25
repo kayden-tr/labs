@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+ROOT_DIR=${ROOT_DIR:-$HOME/.backup}
+LOG_DIR=${LOG_DIR:-$ROOT_DIR/logs}
+BACKUP_DIR=${BACKUP_DIR:-/mnt/backup/swift}
+
+PYTHON_BIN=${PYTHON_BIN:-'/usr/bin/env python3'}
+
+BACKUP_DATE=$(date +%Y-%m-%d)
+BACKUP_NAME=$BACKUP_DATE
+
+SWIFT_LOG_FILE=$LOG_DIR/swift_$BACKUP_DATE.log
+
+mkdir -p $LOG_DIR
+
+BACKUP_DATETIME=$(date +%Y-%m-%dT%H:%M:%S%Z)
+echo "$BACKUP_DATETIME: START SWIFT BACKUP" >> $SWIFT_LOG_FILE
+
+$PYTHON_BIN $ROOT_DIR/swift_backup.py >> $SWIFT_LOG_FILE 2>&1
+
+# BACKUP_DATETIME=$(date +%Y-%m-%dT%H:%M:%S%Z)
+# echo "$BACKUP_DATETIME: START SWIFT COMPRESS" >> $SWIFT_LOG_FILE
+
+# cd $BACKUP_DIR
+
+# tar -zcf $BACKUP_NAME.tar.gz $BACKUP_NAME >> $SWIFT_LOG_FILE 2>&1
+
+# rm -rf $BACKUP_NAME
+
+# BACKUP_DATETIME=$(date +%Y-%m-%dT%H:%M:%S%Z)
+# echo "$BACKUP_DATETIME: END SWIFT COMPRESS" >> $SWIFT_LOG_FILE
+
+BACKUP_DATETIME=$(date +%Y-%m-%dT%H:%M:%S%Z)
+echo "$BACKUP_DATETIME: END SWIFT BACKUP" >> $SWIFT_LOG_FILE

@@ -1,0 +1,54 @@
+#!/bin/bash
+set -e
+
+# Run this script on 25th of every month
+
+TYPE=${TYPE:-f}
+
+DEFAULT_DAYS_IN_YEAR=${DEFAULT_DAYS_IN_YEAR:-365}
+BACKUP_DIR=${BACKUP_DIR:-.}
+
+CURRENT_YEAR=${CURRENT_YEAR:-`date +%Y`}
+
+CURRENT_MONTH=${CURRENT_MONTH:-`date +%-m`}
+
+PRE_ONE_MONTH=$(( $CURRENT_MONTH - 1 ))
+PRE_ONE_MONTH_END_DAY=$(echo $(cal -d $CURRENT_YEAR-$PRE_ONE_MONTH) | tail -c 3)
+
+PRE_TWO_MONTH=$(( $CURRENT_MONTH - 2 ))
+PRE_TWO_MONTH_END_DAY=$(echo $(cal -d $CURRENT_YEAR-$PRE_TWO_MONTH) | tail -c 3)
+
+# Remove all backup data in old years
+if [[ $CURRENT_MONTH -ne 1 && $CURRENT_MONTH -ne 2 ]]; then
+  find $BACKUP_DIR -type $TYPE ! -newermt $CURRENT_YEAR-01-01 -delete
+fi
+
+if [[ $CURRENT_MONTH == 1 ]]; then
+  PRE_ONE_MONTH=12
+  PRE_TWO_MONTH=11
+fi
+
+if [[ $CURRENT_MONTH == 2 ]]; then
+  PRE_ONE_MONTH=1
+  PRE_TWO_MONTH=12
+fi
+
+if [[ $CURRENT_MONTH == 1 ]]; then
+  CURRENT_YEAR=$(( $CURRENT_YEAR - 1 ))
+fi
+
+if [[ $CURRENT_MONTH == 2 ]]; then
+  CURRENT_YEAR=$(( $CURRENT_YEAR - 1 ))
+fi
+
+find $BACKUP_DIR -type $TYPE ! -newermt $CURRENT_YEAR-$PRE_TWO_MONTH-01 -delete
+find $BACKUP_DIR -type $TYPE -newermt $CURRENT_YEAR-$PRE_TWO_MONTH-02 -a ! -newermt $CURRENT_YEAR-$PRE_TWO_MONTH-15 -delete
+find $BACKUP_DIR -type $TYPE -newermt $CURRENT_YEAR-$PRE_TWO_MONTH-16 -a ! -newermt $CURRENT_YEAR-$PRE_TWO_MONTH-$PRE_TWO_MONTH_END_DAY -delete
+
+if [[ $CURRENT_MONTH == 2 ]]; then
+  CURRENT_YEAR=$(( $CURRENT_YEAR + 1 ))
+fi
+
+find $BACKUP_DIR -type $TYPE -newermt $CURRENT_YEAR-$PRE_ONE_MONTH-02 -a ! -newermt $CURRENT_YEAR-$PRE_ONE_MONTH-15 -delete
+find $BACKUP_DIR -type $TYPE -newermt $CURRENT_YEAR-$PRE_ONE_MONTH-16 -a ! -newermt $CURRENT_YEAR-$PRE_ONE_MONTH-$PRE_ONE_MONTH_END_DAY -delete
+

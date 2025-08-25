@@ -1,0 +1,5 @@
+# pip3 install -U --user -r req
+cassandra-driver
+python-dotenv
+python-keystoneclient
+python-swiftclient

@@ -1,0 +1,44 @@
+pipeline {
+  agent { label 'cassandra1-root' }
+
+  environment {
+    DATA_DIR = '/mnt/data/cassandra'
+  }
+
+  options {
+    durabilityHint('PERFORMANCE_OPTIMIZED')
+    timestamps()
+    ansiColor('xterm')
+  }
+
+  triggers {
+    cron('00 15 * * *')
+  }
+
+  post {
+    always {
+      script {
+        emailext(
+          attachLog: false,
+          body: '$DEFAULT_CONTENT',
+          mimeType: "text/html",
+          subject: '$DEFAULT_SUBJECT',
+          from: 'backup@atalink.com',
+          to: '$DEFAULT_RECIPIENTS'
+        )
+      }
+    }
+  }
+
+  stages {
+    stage('backup') {
+      steps {
+        script {
+          sh 'printenv'
+          sh 'bash -lc /home/ubuntu/.backup/cassandra_backup.sh'
+          sh 'bash -lc /home/ubuntu/.backup/backup_rotation_cassandra.sh'
+        }
+      }
+    }
+  }
+}

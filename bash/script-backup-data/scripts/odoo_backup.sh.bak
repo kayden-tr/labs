@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+
+BACKUP_DATE=$(date +%Y-%m-%d)
+BACKUP_DATETIME=$(date +%Y-%m-%dT%H%M%S)
+
+ODOO_BACKUP_ROOT_DIR=${ODOO_BACKUP_ROOT_DIR:-$HOME/.backup/odoo}
+ODOO_BACKUP_DIR=${ODOO_BACKUP_DIR:-$ODOO_BACKUP_ROOT_DIR/$BACKUP_DATE}
+ODOO_BACKUP_LOG_DIR=${ODOO_BACKUP_LOG_DIR:-$HOME/.backup/log}
+ODOO_DB_BACKUP_URL=${ODOO_DB_BACKUP_URL:-http://localhost:8069/web/database/backup}
+mkdir -p $ODOO_BACKUP_DIR
+mkdir -p $ODOO_BACKUP_LOG_DIR
+
+ODOO_BACKUP_FILE=odoo-$BACKUP_DATETIME.zip
+ODOO_BACKUP_LOG_FILE=odoo-$BACKUP_DATETIME.log
+
+ODOO_DATABASE=${ODOO_DATABASE:-odoo}
+ODOO_ADMIN_PASSWORD=${ODOO_ADMIN_PASSWORD:-SUPPERADMIN}
+
+# backup Odoo database + filestore
+curl -X POST \
+    -F "master_pwd=$ODOO_ADMIN_PASSWORD" \
+    -F "name=$ODOO_DATABASE" \
+    -F "backup_format=zip" \
+    -o $ODOO_BACKUP_DIR/$ODOO_BACKUP_FILE \
+    $ODOO_DB_BACKUP_URL >> $ODOO_BACKUP_LOG_DIR/$ODOO_BACKUP_LOG_FILE 2>&1
+
+# backup Odoo custom modules
+ODOO_CUSTOM_MODULE_DIR=${ODOO_CUSTOM_MODULE_DIR:-/mnt/extra-addons}
+ODOO_CUSTOM_MODULE_BACKUP_FILE=odoo-custom-modules-$BACKUP_DATETIME.tar.gz
+
+tar -zvcf $ODOO_BACKUP_DIR/$ODOO_CUSTOM_MODULE_BACKUP_FILE $ODOO_CUSTOM_MODULE_DIR >> $ODOO_BACKUP_LOG_DIR/$ODOO_BACKUP_LOG_FILE 2>&1 || echo "WARNING: compression return a unexpected code"
+
+# delete old backups
+find $ODOO_BACKUP_ROOT_DIR -mindepth 1 -mtime +2 -delete
+find $ODOO_BACKUP_LOG_DIR -mindepth 1 -mtime +2 -delete
+
+### how to restore ?
+# stop Odoo server
+# extract and copy Odoo custom modules to ODOO_CUSTOM_MODULE_DIR from ODOO_CUSTOM_MODULE_BACKUP_FILE.tar.gz
+# start Odoo server
+# use Odoo restore feature to restore from ODOO_BACKUP_FILE.zip
+###

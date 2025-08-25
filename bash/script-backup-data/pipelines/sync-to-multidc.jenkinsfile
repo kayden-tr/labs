@@ -1,0 +1,200 @@
+def getExtraEnvs() {
+  def extraEnvs = env.EXTRA_ENVS ? env.EXTRA_ENVS.split(' ') : []
+  def envList = []
+
+  extraEnvs.each { extraEnv ->
+    def envKV = extraEnv.split('=')
+    envList.add("${envKV[0]}=${envKV[1]}")
+  }
+
+  return envList
+}
+
+properties([
+  parameters([
+    string(description: 'Required, the date of backup, YYYY-MM-DD', name: 'BACKUP_DATE'),
+    booleanParam(description: 'Optional, skip sync backups to multi dc', name: 'SKIP_SYNC_BACKUP', defaultValue: false),
+    booleanParam(description: 'Optional, skip rotate backups', name: 'SKIP_ROTATION', defaultValue: false),
+    string(
+      description: 'Optional, skip sync backups to this remote name, valid values: atalinkvn-s3-prod-backup, viettelidc-backup-server',
+      name: 'SKIP_REMOTE_NAME'
+    ),
+    string(
+      description: 'Optional, fill EXTRA_ENVS to run, example: SYNC_CASSANDRA=true SYNC_ODOO=false',
+      name: 'EXTRA_ENVS'
+    )
+  ])
+])
+
+pipeline {
+  agent none
+
+  environment {
+    RCLONE_COPY_OPTIONS = '--stats 30m --stats-one-line --stats-log-level NOTICE'
+    BACKUP_DIR = '/mnt/backup'
+    UPLOAD_DIR = '/mnt/upload'
+  }
+
+  options {
+    disableConcurrentBuilds()
+    durabilityHint('PERFORMANCE_OPTIMIZED')
+    timestamps()
+    ansiColor('xterm')
+  }
+
+  post {
+    always {
+      script {
+        emailext(
+          attachLog: false,
+          body: '$DEFAULT_CONTENT',
+          mimeType: 'text/html',
+          subject: '$DEFAULT_SUBJECT',
+          from: 'backup@atalink.com',
+          to: '$DEFAULT_RECIPIENTS'
+        )
+      }
+    }
+  }
+
+  stages {
+    stage('sync backups to multidc') {
+      matrix {
+        when {
+          expression {
+            env.SKIP_SYNC_BACKUP != 'true'
+          }
+        }
+        agent { label 'backupandlog-it-backup' }
+        axes {
+          axis {
+            name 'RCLONE_REMOTE_NAME'
+            values 'atalinkvn-s3-prod-backup', 'viettelidc-backup-server'
+          }
+        }
+        stages {
+          stage("sync backups") {
+            when {
+              expression {
+                env.RCLONE_REMOTE_NAME != env.SKIP_REMOTE_NAME
+              }
+            }
+            steps {
+              script {
+                def envList = getExtraEnvs()
+
+                withEnv(envList) {
+                  if (!env.BACKUP_DATE) {
+                    currentBuild.result = 'ABORTED'
+                    error('env.BACKUP_DATE is not set')
+                  }
+
+                  def requiredEnvs = []
+
+                  if (RCLONE_REMOTE_NAME == 'atalinkvn-s3-prod-backup') {
+                    requiredEnvs.add('RCLONE_REMOTE_FOLDER_NAME=atalinkvn-prod-backup')
+                  } else if (RCLONE_REMOTE_NAME == 'viettelidc-backup-server') {
+                    requiredEnvs.add('RCLONE_REMOTE_FOLDER_NAME=/mnt/backup')
+                  }
+
+                  withEnv(requiredEnvs) {
+                    sh 'printenv'
+
+                    echo "syncing backup to ${RCLONE_REMOTE_NAME}"
+
+                    sshagent(credentials: ['BACKUPANDLOG_IT_BACKUP_PRIVATE_KEY']) {
+                      sh "bash $HOME/.backup/bin/sync_backup.sh"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('rotate the remote backups') {
+      matrix {
+        when {
+          expression {
+            env.SKIP_ROTATION != 'true'
+          }
+        }
+        agent {
+          label "${RCLONE_REMOTE_NAME}-agent"
+        }
+        axes {
+          axis {
+            name 'RCLONE_REMOTE_NAME'
+            values 'atalinkvn-s3-prod-backup', 'viettelidc-backup-server'
+          }
+        }
+        stages {
+          stage("rotate backups") {
+            when {
+              expression {
+                env.RCLONE_REMOTE_NAME != env.SKIP_REMOTE_NAME
+              }
+            }
+            steps {
+              script {
+                def envList = getExtraEnvs()
+
+                withEnv(envList) {
+                  sh 'printenv'
+
+                  echo "rotating backups in ${RCLONE_REMOTE_NAME}"
+
+                  if (RCLONE_REMOTE_NAME == 'atalinkvn-s3-prod-backup') {
+                    dir("$HOME/.backup") {
+                      sh 'bash rotate_s3_backup.sh'
+                    }
+                  } else if (RCLONE_REMOTE_NAME == 'viettelidc-backup-server') {
+                    sh "bash $HOME/.backup/bin/rotate_local_files.sh"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('rotate the upload files') {
+      matrix {
+        when {
+          expression {
+            env.SKIP_SYNC_BACKUP != 'true'
+          }
+        }
+        agent { label 'backupandlog-it-backup' }
+        axes {
+          axis {
+            name 'ROTATE_DIR'
+            values '/mnt/upload'
+          }
+        }
+        stages {
+          stage("rotate the local files") {
+            steps {
+              script {
+                def envList = getExtraEnvs()
+
+                envList.add('ROTATE_RETAINED_NUM=7')
+
+                withEnv(envList) {
+                  sh 'printenv'
+
+                  echo "rotating files in ${ROTATE_DIR}"
+
+                  sh "bash $HOME/.backup/bin/rotate_local_files.sh"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

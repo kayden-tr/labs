@@ -1,0 +1,38 @@
+pipeline {
+  agent { label 'operation1-ubuntu' }
+
+  options {
+    disableConcurrentBuilds()
+    durabilityHint('PERFORMANCE_OPTIMIZED')
+    timestamps()
+    ansiColor('xterm')
+  }
+
+  triggers {
+    cron('00 05 * * *')
+  }
+
+  stages {
+    stage('schedule prepare-sync-backup job') {
+      steps {
+        script {
+          env.BACKUP_DATE = sh(
+            encoding: 'UTF-8',
+            returnStdout: true,
+            script: "date +%Y-%m-%d -d '-1 day'"
+          ).trim()
+
+          sh 'printenv'
+
+          build(
+            job: 'prepare-sync-backup',
+            parameters: [
+              string(name: 'BACKUP_DATE', value: env.BACKUP_DATE)
+            ],
+            wait: false
+          )
+        }
+      }
+    }
+  }
+}
