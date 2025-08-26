@@ -1,0 +1,10 @@
+192.168.1.0/24 -> mượn 2 bit 192.168.1.0/26
+n -> bit mượn = 2
+m -> bit còn lại của host = 6
+số subnet : 2^n = 4
+số host/subnet: 2^m -2 = 62 
+Bước nhảy giữa các subnet
+	n= 1 -> 128
+	n= 2 -> 64
+	n= 3 -> 32
+Broadcast = địa chỉ subnet liền kề trước trừ 1
