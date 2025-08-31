@@ -1,0 +1,7 @@
+#!/bin/bash
+#Error: connect EACCES /run/user/1000/vscode-ipc-*.sock
+#Do not permission on /run/user/1000 with current user running
+
+#Assign permission
+sudo chown -R $USER:$USER /run/user/1000
+chmod 700 /run/user/1000
