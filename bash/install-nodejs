@@ -1,0 +1,7 @@
+#!/bin/bash
+VERISON=22
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+#Source nvm script
+\. "$HOME/.nvm/nvm.sh"
+
