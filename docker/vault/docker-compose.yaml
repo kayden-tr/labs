@@ -1,0 +1,20 @@
+name: vault
+
+services:
+  server:
+    image: hashicorp/vault:1.16.2
+    volumes:
+      - ./config:/vault/config
+      - ./data:/vault/raft
+      - ./backups:/vault/backup
+      - ./logs:/vault/logs
+    ports:
+      - 8200:8200
+      - 8201:8201
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_API_ADDR=http://127.0.0.1:8200
+    cap_add:
+      - IPC_LOCK
+    command: vault server -config=/vault/config/vault.hcl
+    restart: always

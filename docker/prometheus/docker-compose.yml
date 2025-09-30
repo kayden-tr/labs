@@ -1,0 +1,21 @@
+name: prometheus
+
+volumes:
+  data:
+
+services:
+  prometheus:
+    image: ${DOCKER_REGISTRY_HOST:-docker.io}/bitnami/prometheus:$PROM_VERSION
+    ports:
+    - 9090:9090
+    command:
+    - --config.file=/opt/bitnami/prometheus/conf/prometheus.yml
+    - --storage.tsdb.retention.time=30d
+    - --web.enable-lifecycle
+    - --web.enable-remote-write-receiver
+    - --web.enable-admin-api
+    volumes:
+    - ./conf/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+    - ./rules:/opt/bitnami/prometheus/conf/rules
+    - data:/opt/bitnami
+    restart: always
