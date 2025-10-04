@@ -1,0 +1,15 @@
+# /etc/systemd/system/docker-start-all.service
+[Unit]
+Description=Start all stopped Docker containers
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+#ExecStart=docker start $(docker ps -aq -f status=exited)
+#ExecStart=/bin/bash -c 'docker start $(docker ps -aq -f status=exited)'
+ExecStart=/bin/bash -c 'containers=$(docker ps -aq -f status=exited); if [ -n "$containers" ]; then docker start $containers; fi'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
