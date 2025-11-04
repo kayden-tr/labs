@@ -1,7 +1,0 @@
-services:
-  cloudflare-ddns:
-    image: oznu/cloudflare-ddns:amd64
-    restart: always
-    env_file:
-      - .env
-    network_mode: host

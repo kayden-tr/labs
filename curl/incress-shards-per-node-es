@@ -1,7 +1,0 @@
-curl -u elastic:<password> -X PUT "<http-or-https>://<ip>:9200/_cluster/settings" \
--H 'Content-Type: application/json' \
--d '{
-  "persistent": {
-    "cluster.max_shards_per_node": 2000
-  }
-}'
