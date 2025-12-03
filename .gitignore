@@ -1,4 +1,3 @@
 atalink
 test-vul
-docker/nginx
-docker/jenkins/data
+py/.env
